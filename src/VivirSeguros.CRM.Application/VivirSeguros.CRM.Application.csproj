@@ -1,0 +1,43 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net5.0</TargetFramework>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <Optimize>false</Optimize>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="AutoMapper" Version="10.1.1" />
+    <PackageReference Include="AutoMapper.Extensions.Microsoft.DependencyInjection" Version="8.1.1" />
+    <PackageReference Include="BCrypt.Net-Next" Version="4.0.2" />
+    <PackageReference Include="FluentValidation" Version="10.3.0" />
+    <PackageReference Include="FluentValidation.DependencyInjectionExtensions" Version="10.3.0" />
+    <PackageReference Include="MediatR" Version="9.0.0" />
+    <PackageReference Include="MediatR.Extensions.Microsoft.DependencyInjection" Version="9.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="5.0.0" />
+    <PackageReference Include="Microsoft.IdentityModel.Tokens" Version="6.12.0" />
+    <PackageReference Include="System.Configuration.ConfigurationManager" Version="7.0.0" />
+    <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="6.12.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\VivirSeguros.CRM.Domain\VivirSeguros.CRM.Domain.csproj" />
+    <ProjectReference Include="..\VivirSeguros.CRM.Infrastructure\VivirSeguros.CRM.Infrastructure.csproj" />
+    <ProjectReference Include="..\VivirSeguros.CRM.Domain\VivirSeguros.CRM.Domain.csproj" />
+    <ProjectReference Include="..\VivirSeguros.CRM.Infrastructure\VivirSeguros.CRM.Infrastructure.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Services\Accounts\Queries\" />
+    <Folder Include="Services\Producto\Commands\" />
+    <Folder Include="Services\SAC\Commands\" />
+    <Folder Include="Services\SAC\FONDOSMAX\Commands\" />
+    <Folder Include="Services\SAC\RENTAMAX\Commands\" />
+    <Folder Include="Services\SAC\RENTAVITALICIA\Commands\" />
+    <Folder Include="Services\SAC\SOAT\Commands\" />
+    <Folder Include="Services\SAC\VIVEMAX\Commands\" />
+  </ItemGroup>
+
+</Project>
