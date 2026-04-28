@@ -1,1 +1,0 @@
-# vivirseguros.apeseg.api
