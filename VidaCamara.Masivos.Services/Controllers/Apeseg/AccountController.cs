@@ -25,7 +25,7 @@ namespace VidaCamara.Masivos.Services.Controllers
 {
     [Route("api/[controller]")]
     [Authorize]
-    public class LoginController : Controller
+    public class AccountController : Controller
     {
         private ILoginService _loginService;
         private ILoggerManager _logger;
@@ -34,7 +34,7 @@ namespace VidaCamara.Masivos.Services.Controllers
 
         private readonly AppSettings _appSettings;
 
-        public LoginController(ILoggerManager logger,
+        public AccountController(ILoggerManager logger,
                                ILoginService loginService,
                                IMapper mapper,
                                IOptions<AppSettings> appSettings,
@@ -47,27 +47,6 @@ namespace VidaCamara.Masivos.Services.Controllers
             _httpContextAccessor = httpContextAccessor;
         }
         
-
-        [AllowAnonymous]
-        [HttpGet]
-        [Route("ObtenerUsuarioVD")]
-        public async Task<IActionResult> ObtenerUsuarioVD()
-        {
-            return Ok(new { usuario = "USERVIVIR", clave = "U123456" });
-        }
-
-        [AllowAnonymous]
-        [HttpGet]
-        [Route("GetAmbiente")]
-        public async Task<IActionResult> GetAmbiente()
-        {
-            string aa = Request.GetTypedHeaders().Referer.ToString();
-            string host = _httpContextAccessor.HttpContext.Request.Headers["Referer"].ToString();
-            Log.save(this, "FACEBOOK 1: " + aa);
-            Log.save(this, "FACEBOOK 2: " + host);
-            return Ok(new { ambiente = _appSettings.Ambiente });
-        }
-
         [AllowAnonymous]
         [HttpPost]
         [Route("GetLogin")]
@@ -92,28 +71,6 @@ namespace VidaCamara.Masivos.Services.Controllers
             }
         }
 
-        [Authorize]
-        [HttpGet]
-        [Route("GetMenu")]
-        public async Task<IActionResult> GetMenu(int param)
-        {
-            if (!ModelState.IsValid) return BadRequest(new { mensaje = "ERROR: Mal peticion" });
-
-            try   {
-                Log.saveFirstLine();
-                Log.save(this, "EMPIEZA WEBAPI GetMenu");
-                var menu  = await _loginService.GetMenu(param);
-                Log.save(this, "TERMINA WEBAPI GetMenu");
-                //if (datos is null) return BadRequest(new { mensaje = "ERROR: Usuario no existe" });
-
-                return Ok(new { menu });
-            }
-            catch (Exception ex)  {
-                int line = (new StackTrace(ex, true)).GetFrame(3).GetFileLineNumber();
-                Log.save(this, "ERROR EN LINEA: " + line + " / " + ex.Message);
-                return BadRequest(new { mensaje = ex.Message });
-            }
-        }
         [ApiExplorerSettings(IgnoreApi = true)]
         private IActionResult BuildToken( string user, string perfil )  
         {
@@ -151,30 +108,6 @@ namespace VidaCamara.Masivos.Services.Controllers
             }
 
         }
-
-        [Authorize]
-        [HttpPost]
-        [Route("GetCombo")]
-        public async Task<IActionResult> GetCombo([FromBody] ComboParam _param)
-        {
-            if (!ModelState.IsValid) return BadRequest(new { mensaje = "ERROR: Mal peticion" });
-
-            try
-            {
-                var datos = await _loginService.GetCombo(_param);
-                if (datos is null) return Ok(new { mensaje = "ERROR: Tabla para combo no existe" });
-
-                return Ok(new { mensaje = "OK", datos });
-            }
-            catch (Exception ex)
-            {
-                int line = (new StackTrace(ex, true)).GetFrame(3).GetFileLineNumber();
-                Log.save(this, "ERROR EN LINEA: " + line + " / " + ex.Message);
-                return BadRequest(new { mensaje = ex.Message });
-            }
-        }
-
-            
 
     }
 }

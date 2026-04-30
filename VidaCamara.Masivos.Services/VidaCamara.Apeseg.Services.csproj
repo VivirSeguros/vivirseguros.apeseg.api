@@ -105,6 +105,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Folder Include="Controllers\Configurar\" />
     <Folder Include="Resources\" />
   </ItemGroup>
 
