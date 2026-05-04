@@ -70,6 +70,8 @@ namespace VidaCamara.Masivos.Services.Controllers
                 Log.saveFirstLine();
                 Log.save(this, "EMPIEZA MODIFICACIÓN A APESEG PLACA= " + _param.PlacaVehiculo);
 
+                _param.IpCliente = GetClientIp();
+
                 var datos = await _apesegService.Apeseg_Actualizar(_param);
 
                 Log.save(this, "TERMINA MODIFICACIÓN A APESEG PLACA= " + _param.PlacaVehiculo);
@@ -97,6 +99,8 @@ namespace VidaCamara.Masivos.Services.Controllers
             {
                 Log.saveFirstLine();
                 Log.save(this, "EMPIEZA ANULACIÓN A APESEG CERTIFICADO= " + _param.PolizaCertificado);
+
+                _param.IpCliente = GetClientIp();
 
                 var datos = await _apesegService.Apeseg_Anular(_param);
 
