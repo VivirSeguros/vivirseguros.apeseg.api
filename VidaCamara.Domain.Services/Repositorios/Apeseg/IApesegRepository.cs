@@ -7,9 +7,10 @@ namespace VidaCamara.Domain.Services.Repositorios.Apeseg
 {
     public interface IApesegRepository
     {
-        Task<RegistrarResponse> Apeseg_Registrar(RegistrarParam param);
-        Task<ModificarResponse> Apeseg_Actualizar(ModificarParam param);
-        Task<AnularResponse> Apeseg_Anular(AnularParam param);
-        Task<ConsultarResponse> Consultar(ConsultarParam param);
+        //Task<RegistrarResponse> Apeseg_Registrar(RegistrarParam param);
+        //Task<ModificarResponse> Apeseg_Actualizar(ModificarParam param);
+        //Task<AnularResponse> Apeseg_Anular(AnularParam param);
+        //Task<ConsultarResponse> Consultar(ConsultarParam param);
+        void GrabarLog(ApesegLog param);
     }
 }

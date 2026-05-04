@@ -94,14 +94,14 @@ namespace VidaCamara.Masivos.Services.Controllers
             try
             {
                 Log.saveFirstLine();
-                Log.save(this, "EMPIEZA ANULACIÓN A APESEG CERTIFICADO= " + _param.polizaCertificado);
+                Log.save(this, "EMPIEZA ANULACIÓN A APESEG CERTIFICADO= " + _param.PolizaCertificado);
 
                 var datos = await _apesegService.Apeseg_Anular(_param);
 
-                Log.save(this, "TERMINA ANULACIÓN A APESEG CERTIFICADO= " + _param.polizaCertificado);
+                Log.save(this, "TERMINA ANULACIÓN A APESEG CERTIFICADO= " + _param.PolizaCertificado);
 
                 if (!datos.OperacionExitosa)
-                    return BadRequest(new { mensaje = "ERROR: Error en anulación certificado " + _param.polizaCertificado, errores = datos.CodigoError });
+                    return BadRequest(new { mensaje = "ERROR: Error en anulación certificado " + _param.PolizaCertificado, errores = datos.CodigoError });
 
                 return Ok(new { mensaje = "OK", datos });
             }

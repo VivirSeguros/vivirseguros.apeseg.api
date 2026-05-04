@@ -5,6 +5,20 @@ namespace VidaCamara.Domain.Services.Entidades.Apeseg
 {
     #region PARAMETROS API (Lo que recibe tu Controller)
 
+    public class ApesegLog
+    {
+        public string Tipo { get; set; }
+        public string Nro { get; set; }
+        public int Digito { get; set; }
+        public string Err { get; set; }
+        public string Envia { get; set; }
+        public string Recibe { get; set; }
+        public string User { get; set; }
+        public string Proveedor { get; set; }
+        public string Canal { get; set; }
+        public string PuntoVenta { get; set; }
+        public string IpCliente { get; set; }
+    }
     public class RegistroSOATRequest
     {
         public string CodigoAseguradora { get; set; }
@@ -29,7 +43,11 @@ namespace VidaCamara.Domain.Services.Entidades.Apeseg
         public string NumeroAsientos { get; set; }
         public string ModeloVehiculo { get; set; }
         public string UsuarioRegistro { get; set; }
-        //public string FechaRegistro { get; set; }
+
+        public string Proveedor { get; set; }
+        public string Canal { get; set; }
+        public string PuntoVenta { get; set; }
+        public string IpCliente { get; set; }
     }
 
     // Modificar hereda de Registro porque usa los mismos campos + el Dígito
@@ -60,17 +78,27 @@ namespace VidaCamara.Domain.Services.Entidades.Apeseg
         public string ModeloVehiculo { get; set; }
         public string DigitoVerificador { get; set; }
         public string UsuarioRegistro { get; set; }
-        //public string FechaRegistro { get; set; }
+
+
+        public string Proveedor { get; set; }
+        public string Canal { get; set; }
+        public string PuntoVenta { get; set; }
+        public string IpCliente { get; set; }
     }
 
     public class AnulacionSOATRequest
     {
-        public string codigoAseguradora { get; set; }
-        public string polizaCertificado { get; set; }
-        public string digitoVerificador { get; set; }
-        public string codigoTipoAnulacion { get; set; }
+        public string CodigoAseguradora { get; set; }
+        public string PolizaCertificado { get; set; }
+        public string DigitoVerificador { get; set; }
+        public string CodigoTipoAnulacion { get; set; }
         public string UsuarioRegistro { get; set; }
-        //public string FechaRegistro { get; set; }
+
+
+        public string Proveedor { get; set; }
+        public string Canal { get; set; }
+        public string PuntoVenta { get; set; }
+        public string IpCliente { get; set; }
     }
     public class ConsultaSOATRequest
     {
