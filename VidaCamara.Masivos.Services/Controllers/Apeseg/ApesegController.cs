@@ -40,6 +40,8 @@ namespace VidaCamara.Masivos.Services.Controllers
                 Log.saveFirstLine();
                 Log.save(this, "EMPIEZA GRABACIÓN A APESEG REGISTRAR PLACA= " + _param.PlacaVehiculo);
 
+                _param.IpCliente = GetClientIp();
+
                 var datos = await _apesegService.Apeseg_Registrar(_param);
 
                 Log.save(this, "TERMINA GRABACIÓN A APESEG REGISTRAR PLACA= " + _param.PlacaVehiculo);
@@ -111,7 +113,7 @@ namespace VidaCamara.Masivos.Services.Controllers
                 return BadRequest(new { mensaje = ex.Message });
             }
         }
-     
+
         [Authorize]
         [HttpGet]
         [Route("Consultar/{placa}/{subscriptionKey?}")]
@@ -162,5 +164,22 @@ namespace VidaCamara.Masivos.Services.Controllers
                 return BadRequest(new { mensaje = ex.Message });
             }
         }
+
+
+        #region Metodos Privados
+        private string GetClientIp()
+        {
+            string ip = Request.Headers["X-Forwarded-For"].FirstOrDefault();
+
+            if (string.IsNullOrEmpty(ip))
+            {
+                ip = HttpContext.Connection.RemoteIpAddress?.ToString();
+                if (ip == "::1")
+                    return "127.0.0.1";
+            }
+            return ip ?? "127.0.0.1";
+        }
+        #endregion
+
     }
 }

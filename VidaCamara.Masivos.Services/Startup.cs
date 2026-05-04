@@ -15,6 +15,7 @@ using Microsoft.OpenApi.Models;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using Microsoft.AspNetCore.HttpOverrides;
 using VidaCamara.CrossCuting.Utilities.Configuration;
 using VidaCamara.Domain.Services.LoginModule;
 using VidaCamara.Domain.Services.Repositorios.Apeseg;
@@ -33,19 +34,14 @@ using VidaCamara.Masivos.Services.Services.Configurar.UsuarioModule;
 using VidaCamara.Masivos.Services.Services.Helper;
 using VidaCamara.Masivos.Services.Services.LoginModule;
 
-
 namespace VidaCamara.Masivos.Services
 {
     public class Startup
     {
-        // This method gets called by the runtime. Use this method to add services to the container.
-        // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
         readonly string MyAllowAnyOrigin = "_AllowAnyOrigin";
 
         public Startup(IConfiguration configuration, ILoggerFactory loggerFactory)
         {
-            // loggerFactory.ConfigureNLog(string.Concat(Directory.GetCurrentDirectory(), "/nlog.config"));
-            //NLog.LogManager.LoadConfiguration(string.Concat(Directory.GetCurrentDirectory(), "/nlog.config"));
             Configuration = configuration;
         }
 
@@ -55,22 +51,27 @@ namespace VidaCamara.Masivos.Services
         {
             services.ConfigureLoggerService();
 
+            services.Configure<ForwardedHeadersOptions>(options =>
+            {
+                options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+                options.KnownNetworks.Clear();
+                options.KnownProxies.Clear();
+            });
+
             services.AddCors(options =>
             {
                 options.AddPolicy(MyAllowAnyOrigin,
                     builder => builder.AllowAnyOrigin()
                     .AllowAnyMethod()
-                    .AllowAnyHeader() //.AllowCredentials()
-                    );
+                    .AllowAnyHeader());
             });
 
             services.AddMvc();
-            services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
             services.AddControllers();
             services.AddAutoMapper(typeof(Startup).Assembly);
-            //services.AddAutoMapper();
             services.AddHttpContextAccessor();
             services.TryAddSingleton<IActionContextAccessor, ActionContextAccessor>();
+
             var appSettingsSection = Configuration.GetSection("AppSettings");
             if (appSettingsSection.Get<AppSettings>().Activo == 0)
             {
@@ -92,89 +93,64 @@ namespace VidaCamara.Masivos.Services
                 x.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
                 x.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
             })
-                .AddJwtBearer(x =>
+            .AddJwtBearer(x =>
+            {
+                x.RequireHttpsMetadata = false;
+                x.SaveToken = true;
+                x.TokenValidationParameters = new TokenValidationParameters
                 {
-                    x.RequireHttpsMetadata = false;
-                    x.SaveToken = true;
-                    x.TokenValidationParameters = new TokenValidationParameters
-                    {
-                        ValidateIssuerSigningKey = true,
-                        IssuerSigningKey = new SymmetricSecurityKey(key),
-                        ValidateIssuer = false,
-                        ValidateAudience = false
-                    };
-                });
+                    ValidateIssuerSigningKey = true,
+                    IssuerSigningKey = new SymmetricSecurityKey(key),
+                    ValidateIssuer = false,
+                    ValidateAudience = false
+                };
+            });
 
             RegisterAplicacionesServices(services);
             RegisterRepositoryServices(services);
 
             services.AddSwaggerGen(options =>
             {
-                //options.DescribeAllEnumsAsStrings();
-
                 options.OperationFilter<VidaCamara.Masivos.Services.Extensions.AuthorizationHeaderFilter>();
-
                 options.IncludeXmlComments(Path.ChangeExtension(typeof(Startup).Assembly.Location, "xml"));
-
                 options.SwaggerDoc("v1", new OpenApiInfo
                 {
                     Title = Configuration["App:Title"],
                     Version = Configuration["App:Version"],
                     Description = Configuration["App:Description"]
-                }
-                );
+                });
                 options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
                 {
-                    Description =
-                    "JWT Authorization header using the Bearer scheme. \r\n\r\n Enter 'Bearer' [space] and then your token in the text input below.\r\n\r\nExample: \"Bearer 12345abcdef\"",
+                    Description = "JWT Authorization header using the Bearer scheme.",
                     Name = "Authorization",
                     In = ParameterLocation.Header,
                     Type = SecuritySchemeType.ApiKey,
                     Scheme = "Bearer"
                 });
                 options.AddSecurityRequirement(new OpenApiSecurityRequirement()
-      {
-        {
-          new OpenApiSecurityScheme
-          {
-            Reference = new OpenApiReference
-              {
-                Type = ReferenceType.SecurityScheme,
-                Id = "Bearer"
-              },
-              Scheme = "oauth2",
-              Name = "Bearer",
-              In = ParameterLocation.Header,
-
-            },
-            new List<string>()
-          }
-        });
-
+                {
+                    {
+                        new OpenApiSecurityScheme
+                        {
+                            Reference = new OpenApiReference { Type = ReferenceType.SecurityScheme, Id = "Bearer" }
+                        },
+                        new List<string>()
+                    }
+                });
                 options.CustomSchemaIds(x => x.FullName);
             });
-
         }
 
-        // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IHostEnvironment env)
         {
-            /*if (env.IsDevelopment())
-            {
-                app.UseDeveloperExceptionPage();
-            }
+            app.UseForwardedHeaders();
 
-            app.Run(async (context) =>
-            {
-                await context.Response.WriteAsync("Hello World!");
-            });*/
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
             }
 
             app.UseCors(MyAllowAnyOrigin);
-            app.UseAuthentication();
             app.UseStaticFiles();
             app.UseStaticFiles(new StaticFileOptions()
             {
@@ -182,6 +158,7 @@ namespace VidaCamara.Masivos.Services
                 RequestPath = new PathString("/Resources")
             });
             app.UseRouting();
+            app.UseAuthentication();
             app.UseAuthorization();
             app.UseEndpoints(endpoints =>
             {
@@ -191,28 +168,11 @@ namespace VidaCamara.Masivos.Services
             });
             app.UseSwagger();
 
-            if (env.IsDevelopment())
+            app.UseSwaggerUI(c =>
             {
-                app.UseSwaggerUI(c =>
-                {
-                    c.SwaggerEndpoint("/swagger/v1/swagger.json", "Plataforma API v1");
-                    // Esta línea es la clave: establece Swagger en la raíz (https://localhost:44343/)
-                    c.RoutePrefix = string.Empty;
-                });
-            }
-            else
-            {
-                app.UseSwaggerUI(c =>
-                {
-                    c.SwaggerEndpoint("./swagger/v1/swagger.json", "Plataforma API");
-                    c.RoutePrefix = string.Empty;
-                });
-            }
-            //.UseSwaggerUI(c =>
-            //{
-            //    c.SwaggerEndpoint("../swagger/v1/swagger.json", "Plataforma API");
-            //    c.InjectStylesheet("../css/swagger.min.css");
-            //});
+                c.SwaggerEndpoint(env.IsDevelopment() ? "/swagger/v1/swagger.json" : "./swagger/v1/swagger.json", "Plataforma API v1");
+                c.RoutePrefix = string.Empty;
+            });
         }
 
         private static void RegisterAplicacionesServices(IServiceCollection services)
@@ -224,8 +184,8 @@ namespace VidaCamara.Masivos.Services
             services.AddScoped<IHelperService, HelperService>();
             services.AddScoped<IApesegService, ApesegService>();
             services.AddScoped<IMaestraService, MaestraService>();
-
         }
+
         private static void RegisterRepositoryServices(IServiceCollection services)
         {
             services.AddScoped<IConnectionBase, ConnectionBase>();
@@ -235,7 +195,7 @@ namespace VidaCamara.Masivos.Services
             services.AddScoped<IRolRepository, RolRepository>();
             services.AddScoped<IHelperRepository, HelperRepository>();
             services.AddScoped<IApesegRepository, ApesegRepository>();
-            services.AddScoped<IMaestraRepository, MaestraRepository>(); ;
+            services.AddScoped<IMaestraRepository, MaestraRepository>();
         }
     }
 }
