@@ -33,6 +33,7 @@ namespace VidaCamara.Domain.Services.Entidades.Apeseg
         public string CodigoUsoVehiculo { get; set; }
         public string CodigoClaseVehiculo { get; set; }
         public string PaisPlaca { get; set; }
+        public string FechaRegistro { get; set; }
         public string CodigoUbigeo { get; set; }
         public string NumeroSerieMotor { get; set; }
         public string FechaControlPolicial { get; set; }
@@ -192,6 +193,7 @@ namespace VidaCamara.Domain.Services.Entidades.Apeseg
         public bool OperacionExitosa { get; set; }
         public string MensajeOperacion { get; set; }
         public List<string> CodigoError { get; set; }
+        public List<string> MensajeError { get; set; }
         public int DigitoVerificador { get; set; }
     }
 
@@ -200,6 +202,8 @@ namespace VidaCamara.Domain.Services.Entidades.Apeseg
         public bool OperacionExitosa { get; set; }
         public string MensajeOperacion { get; set; }
         public List<string> CodigoError { get; set; }
+        public List<string> MensajeError { get; set; }
+
     }
 
     public class AnularResponse
@@ -207,6 +211,7 @@ namespace VidaCamara.Domain.Services.Entidades.Apeseg
         public bool OperacionExitosa { get; set; }
         public string MensajeOperacion { get; set; }
         public List<string> CodigoError { get; set; }
+        public List<string> MensajeError { get; set; }
     }
 
     public class ConsultarResponse
@@ -241,5 +246,11 @@ namespace VidaCamara.Domain.Services.Entidades.Apeseg
     {
         public int BatchSize { get; set; }
         public int DelayInSeconds { get; set; }
+    }
+
+    public class ApesegErrorCatalogo
+    {
+        public string Codigo { get; set; }
+        public string Descripcion { get; set; }
     }
 }

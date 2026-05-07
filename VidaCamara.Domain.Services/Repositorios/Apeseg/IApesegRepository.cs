@@ -11,6 +11,8 @@ namespace VidaCamara.Domain.Services.Repositorios.Apeseg
         //Task<ModificarResponse> Apeseg_Actualizar(ModificarParam param);
         //Task<AnularResponse> Apeseg_Anular(AnularParam param);
         //Task<ConsultarResponse> Consultar(ConsultarParam param);
-        void GrabarLog(ApesegLog param);
+        void Apeseg_Insertar(ApesegLog param);
+        Task<IEnumerable<ApesegErrorCatalogo>> ApesegErrorCatalogo_Listar();
+        void Apeseg_Validar(string tipo, dynamic req);
     }
 }

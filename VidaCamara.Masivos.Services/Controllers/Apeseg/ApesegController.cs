@@ -44,10 +44,10 @@ namespace VidaCamara.Masivos.Services.Controllers
 
                 var datos = await _apesegService.Apeseg_Registrar(_param);
 
-                Log.save(this, "TERMINA GRABACIÓN A APESEG REGISTRAR PLACA= " + _param.PlacaVehiculo);
-
                 if (!datos.OperacionExitosa)
-                    return BadRequest(new { mensaje = "ERROR: Error en grabación placa " + _param.PlacaVehiculo, errores = datos.CodigoError });
+                    return BadRequest(new { mensaje = "ERROR: Error en grabación placa " + _param.PlacaVehiculo, errores = datos.CodigoError, erroresmensaje = datos.MensajeError });
+
+                Log.save(this, "TERMINA GRABACIÓN A APESEG REGISTRAR PLACA= " + _param.PlacaVehiculo);
 
                 return Ok(new { mensaje = "OK", datos });
             }
@@ -74,10 +74,10 @@ namespace VidaCamara.Masivos.Services.Controllers
 
                 var datos = await _apesegService.Apeseg_Actualizar(_param);
 
-                Log.save(this, "TERMINA MODIFICACIÓN A APESEG PLACA= " + _param.PlacaVehiculo);
-
                 if (!datos.OperacionExitosa)
-                    return BadRequest(new { mensaje = "ERROR: Error en modificación placa " + _param.PlacaVehiculo, errores = datos.CodigoError });
+                    return BadRequest(new { mensaje = "ERROR: Error en modificación placa " + _param.PlacaVehiculo, errores = datos.CodigoError, erroresmensaje = datos.MensajeError });
+
+                Log.save(this, "TERMINA MODIFICACIÓN A APESEG PLACA= " + _param.PlacaVehiculo);
 
                 return Ok(new { mensaje = "OK", datos });
             }
@@ -104,10 +104,10 @@ namespace VidaCamara.Masivos.Services.Controllers
 
                 var datos = await _apesegService.Apeseg_Anular(_param);
 
-                Log.save(this, "TERMINA ANULACIÓN A APESEG CERTIFICADO= " + _param.PolizaCertificado);
-
                 if (!datos.OperacionExitosa)
-                    return BadRequest(new { mensaje = "ERROR: Error en anulación certificado " + _param.PolizaCertificado, errores = datos.CodigoError });
+                    return BadRequest(new { mensaje = "ERROR: Error en anulación certificado " + _param.PolizaCertificado, errores = datos.CodigoError, erroresmensaje = datos.MensajeError });
+                
+                Log.save(this, "TERMINA ANULACIÓN A APESEG CERTIFICADO= " + _param.PolizaCertificado);
 
                 return Ok(new { mensaje = "OK", datos });
             }

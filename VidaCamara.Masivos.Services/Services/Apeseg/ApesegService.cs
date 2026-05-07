@@ -34,6 +34,8 @@ namespace VidaCamara.Masivos.Services.Services.Apeseg
 
         public async Task<RegistrarResponse> Apeseg_Registrar(RegistroSOATRequest request)
         {
+            _apesegRepository.Apeseg_Validar("R", request);
+
             RegistrarParam param = new RegistrarParam
             {
                 CodigoAseguradora = request.CodigoAseguradora,
@@ -48,7 +50,7 @@ namespace VidaCamara.Masivos.Services.Services.Apeseg
                 CodigoUsoVehiculo = request.CodigoUsoVehiculo,
                 CodigoClaseVehiculo = request.CodigoClaseVehiculo,
                 PaisPlaca = request.PaisPlaca,
-                FechaIngreso = DateTime.Now.ToString("dd/MM/yyyy"), // request.FechaRegistro,
+                FechaIngreso = request.FechaRegistro,
                 CodigoUbigeo = request.CodigoUbigeo,
                 NumeroSerieMotor = request.NumeroSerieMotor,
                 FechaControlPolicial = request.FechaControlPolicial,
@@ -64,7 +66,10 @@ namespace VidaCamara.Masivos.Services.Services.Apeseg
             string jsonEnvia = string.Empty;
             try
             {
+                Log.save(this, "EMPIEZA OBTENER TOKEN INTERNO APESEG PLACA= " + request.PlacaVehiculo);
                 string token = await ObtenerToken();
+                Log.save(this, "TERMINA OBTENER TOKEN INTERNO APESEG PLACA= " + request.PlacaVehiculo);
+
                 string subKey = await _helperService.GetValorTablaConfig("APESEG.SubscriptionKey");
                 string uri = await _helperService.GetValorTablaConfig("APESEG.UriRegistrarSOAT");
                 jsonEnvia = JsonConvert.SerializeObject(param);
@@ -74,12 +79,37 @@ namespace VidaCamara.Masivos.Services.Services.Apeseg
                     client.DefaultRequestHeaders.Add("Authorization", "Bearer " + token);
                     client.DefaultRequestHeaders.Add("Ocp-Apim-Subscription-Key", subKey);
 
+                    Log.save(this, "EMPIEZA INVOCACIÓN SERVICIO APESEG.UriRegistrarSOAT APESEG PLACA= " + request.PlacaVehiculo);
                     var response = await client.PostAsync(uri, new StringContent(jsonEnvia, Encoding.UTF8, "application/json"));
                     var jsonRecibe = await response.Content.ReadAsStringAsync();
                     var resultado = JsonConvert.DeserializeObject<RegistrarResponse>(jsonRecibe);
-
                     string status = resultado.OperacionExitosa ? "OK" : string.Join(",", resultado.CodigoError);
                     int digito = resultado.OperacionExitosa ? resultado.DigitoVerificador : -1;
+                    Log.save(this, "TERMINA INVOCACIÓN SERVICIO APESEG.UriRegistrarSOAT APESEG PLACA= " + request.PlacaVehiculo);
+
+                    Log.save(this, "EMPIEZA CATALOGO ERROR LISTAR APESEG PLACA= " + request.PlacaVehiculo);
+                    if (resultado.CodigoError != null && resultado.CodigoError.Any())
+                    {
+                        var catalogoTask = await _apesegRepository.ApesegErrorCatalogo_Listar();
+                        var listaCatalogo = catalogoTask.ToList();
+
+                        resultado.MensajeError = new List<string>();
+
+                        foreach (var codigoSrv in resultado.CodigoError)
+                        {
+                            var errorDb = listaCatalogo.FirstOrDefault(x => x.Codigo == codigoSrv);
+
+                            if (errorDb != null)
+                            {
+                                resultado.MensajeError.Add($"{errorDb.Codigo} - {errorDb.Descripcion}");
+                            }
+                            else
+                            {
+                                resultado.MensajeError.Add($"{codigoSrv} - Error no catalogado");
+                            }
+                        }
+                    }
+                    Log.save(this, "TERMINA CATALOGO ERROR LISTAR APESEG PLACA= " + request.PlacaVehiculo);
 
                     ApesegLog apesegLog = new ApesegLog
                     {
@@ -96,7 +126,10 @@ namespace VidaCamara.Masivos.Services.Services.Apeseg
                         IpCliente = request.IpCliente,
                     };
 
-                    _apesegRepository.GrabarLog(apesegLog);
+                    Log.save(this, "EMPIEZA PROCESO DE GRABARLOG APESEG PLACA= " + request.PlacaVehiculo);
+                    _apesegRepository.Apeseg_Insertar(apesegLog);
+                    Log.save(this, "TERMINA PROCESO DE GRABARLOG APESEG PLACA= " + request.PlacaVehiculo);
+
                     return resultado;
                 }
             }
@@ -118,7 +151,7 @@ namespace VidaCamara.Masivos.Services.Services.Apeseg
                     PuntoVenta = request.PuntoVenta,
                     IpCliente = request.IpCliente,
                 };
-                _apesegRepository.GrabarLog(apesegLog);
+                _apesegRepository.Apeseg_Insertar(apesegLog);
                 throw;
             }
         }
@@ -126,6 +159,8 @@ namespace VidaCamara.Masivos.Services.Services.Apeseg
         public async Task<ModificarResponse> Apeseg_Actualizar(ModificarSOATRequest request)
         {
             string jsonEnvia = string.Empty;
+
+            _apesegRepository.Apeseg_Validar("U", request);
 
             ModificarParam param = new ModificarParam
             {
@@ -156,7 +191,10 @@ namespace VidaCamara.Masivos.Services.Services.Apeseg
 
             try
             {
+                Log.save(this, "EMPIEZA OBTENER TOKEN INTERNO APESEG PLACA= " + request.PlacaVehiculo);
                 string token = await ObtenerToken();
+                Log.save(this, "TERMINA OBTENER TOKEN INTERNO APESEG PLACA= " + request.PlacaVehiculo);
+
                 string subKey = await _helperService.GetValorTablaConfig("APESEG.SubscriptionKey");
                 string uri = await _helperService.GetValorTablaConfig("APESEG.UriActualizarSOAT");
                 jsonEnvia = JsonConvert.SerializeObject(param);
@@ -166,11 +204,37 @@ namespace VidaCamara.Masivos.Services.Services.Apeseg
                     client.DefaultRequestHeaders.Add("Authorization", "Bearer " + token);
                     client.DefaultRequestHeaders.Add("Ocp-Apim-Subscription-Key", subKey);
 
+                    Log.save(this, "EMPIEZA INVOCACIÓN SERVICIO APESEG.UriActualizarSOAT APESEG PLACA= " + request.PlacaVehiculo);
                     var response = await client.PutAsync(uri, new StringContent(jsonEnvia, Encoding.UTF8, "application/json"));
                     var jsonRecibe = await response.Content.ReadAsStringAsync();
                     var resultado = JsonConvert.DeserializeObject<ModificarResponse>(jsonRecibe);
-
                     string status = resultado.OperacionExitosa ? "OK" : string.Join(",", resultado.CodigoError);
+                    Log.save(this, "TERMINA INVOCACIÓN SERVICIO APESEG.UriActualizarSOAT APESEG PLACA= " + request.PlacaVehiculo);
+
+
+                    Log.save(this, "EMPIEZA CATALOGO ERROR LISTAR APESEG PLACA= " + request.PlacaVehiculo);
+                    if (resultado.CodigoError != null && resultado.CodigoError.Any())
+                    {
+                        var catalogoTask = await _apesegRepository.ApesegErrorCatalogo_Listar();
+                        var listaCatalogo = catalogoTask.ToList();
+
+                        resultado.MensajeError = new List<string>();
+
+                        foreach (var codigoSrv in resultado.CodigoError)
+                        {
+                            var errorDb = listaCatalogo.FirstOrDefault(x => x.Codigo == codigoSrv);
+
+                            if (errorDb != null)
+                            {
+                                resultado.MensajeError.Add($"{errorDb.Codigo} - {errorDb.Descripcion}");
+                            }
+                            else
+                            {
+                                resultado.MensajeError.Add($"{codigoSrv} - Error no catalogado");
+                            }
+                        }
+                    }
+                    Log.save(this, "TERMINA CATALOGO ERROR LISTAR APESEG PLACA= " + request.PlacaVehiculo);
 
                     ApesegLog apesegLog = new ApesegLog
                     {
@@ -186,8 +250,11 @@ namespace VidaCamara.Masivos.Services.Services.Apeseg
                         PuntoVenta = request.PuntoVenta,
                         IpCliente = request.IpCliente,
                     };
-                    
-                    _apesegRepository.GrabarLog(apesegLog);
+
+                    Log.save(this, "EMPIEZA PROCESO DE GRABARLOG APESEG PLACA= " + request.PlacaVehiculo);
+                    _apesegRepository.Apeseg_Insertar(apesegLog);
+                    Log.save(this, "TERMINA PROCESO DE GRABARLOG APESEG PLACA= " + request.PlacaVehiculo);
+
                     return resultado;
                 }
             }
@@ -210,7 +277,7 @@ namespace VidaCamara.Masivos.Services.Services.Apeseg
                     PuntoVenta = request.PuntoVenta,
                     IpCliente = request.IpCliente,
                 };
-                _apesegRepository.GrabarLog(apesegLog);
+                _apesegRepository.Apeseg_Insertar(apesegLog);
                 throw;
             }
         }
@@ -218,6 +285,7 @@ namespace VidaCamara.Masivos.Services.Services.Apeseg
         public async Task<AnularResponse> Apeseg_Anular(AnulacionSOATRequest request)
         {
             string jsonEnvia = string.Empty;
+            _apesegRepository.Apeseg_Validar("D", request);
 
             AnularParam param = new AnularParam
             {
@@ -241,11 +309,38 @@ namespace VidaCamara.Masivos.Services.Services.Apeseg
                     client.DefaultRequestHeaders.Add("Authorization", "Bearer " + token);
                     client.DefaultRequestHeaders.Add("Ocp-Apim-Subscription-Key", subKey);
 
+                    Log.save(this, "EMPIEZA INVOCACIÓN SERVICIO APESEG.UriAnularSOAT APESEG PLACA= " + request.PolizaCertificado);
                     var response = await client.PutAsync(uri, new StringContent(jsonEnvia, Encoding.UTF8, "application/json"));
                     var jsonRecibe = await response.Content.ReadAsStringAsync();
                     var resultado = JsonConvert.DeserializeObject<AnularResponse>(jsonRecibe);
-
+                    Log.save(this, "TERMINA INVOCACIÓN SERVICIO APESEG.UriAnularSOAT APESEG PLACA= " + request.PolizaCertificado);
                     string status = resultado.OperacionExitosa ? "OK" : string.Join(",", resultado.CodigoError);
+
+
+                    Log.save(this, "EMPIEZA CATALOGO ERROR LISTAR APESEG PLACA= " + request.PolizaCertificado);
+                    if (resultado.CodigoError != null && resultado.CodigoError.Any())
+                    {
+                        var catalogoTask = await _apesegRepository.ApesegErrorCatalogo_Listar();
+                        var listaCatalogo = catalogoTask.ToList();
+
+                        resultado.MensajeError = new List<string>();
+
+                        foreach (var codigoSrv in resultado.CodigoError)
+                        {
+                            var errorDb = listaCatalogo.FirstOrDefault(x => x.Codigo == codigoSrv);
+
+                            if (errorDb != null)
+                            {
+                                resultado.MensajeError.Add($"{errorDb.Codigo} - {errorDb.Descripcion}");
+                            }
+                            else
+                            {
+                                resultado.MensajeError.Add($"{codigoSrv} - Error no catalogado");
+                            }
+                        }
+                    }
+                    Log.save(this, "TERMINA CATALOGO ERROR LISTAR APESEG PLACA= " + request.PolizaCertificado);
+
 
                     ApesegLog apesegLog = new ApesegLog
                     {
@@ -262,7 +357,9 @@ namespace VidaCamara.Masivos.Services.Services.Apeseg
                         IpCliente = request.IpCliente,
                     };
 
-                    _apesegRepository.GrabarLog(apesegLog);
+                    Log.save(this, "EMPIEZA PROCESO DE GRABARLOG APESEG PLACA= " + request.PolizaCertificado);
+                    _apesegRepository.Apeseg_Insertar(apesegLog);
+                    Log.save(this, "TERMINA PROCESO DE GRABARLOG APESEG PLACA= " + request.PolizaCertificado);
 
                     return resultado;
                 }
@@ -286,7 +383,7 @@ namespace VidaCamara.Masivos.Services.Services.Apeseg
                     IpCliente = request.IpCliente,
 
                 };
-                _apesegRepository.GrabarLog(apesegLog);
+                _apesegRepository.Apeseg_Insertar(apesegLog);
                 throw;
             }
         }
@@ -341,7 +438,7 @@ namespace VidaCamara.Masivos.Services.Services.Apeseg
             try
             {
                 string aadInstance = await _helperService.GetValorTablaConfig("APESEG.AADInstance");
-                string tenant = await _helperService.GetValorTablaConfig("APESEG.Tenant"); 
+                string tenant = await _helperService.GetValorTablaConfig("APESEG.Tenant");
                 string endpoint = string.Format(aadInstance, tenant);
                 string clientId = await _helperService.GetValorTablaConfig("APESEG.ClientId");
                 string clientSecret = await _helperService.GetValorTablaConfig("APESEG.ClientSecret");
