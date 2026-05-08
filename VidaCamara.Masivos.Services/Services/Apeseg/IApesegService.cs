@@ -13,5 +13,6 @@ namespace VidaCamara.Masivos.Services.Services.Apeseg
         Task<ModificarResponse> Apeseg_Actualizar(ModificarSOATRequest request);
         Task<AnularResponse> Apeseg_Anular(AnulacionSOATRequest request);
         Task<ConsultarResponse> Consultar(ConsultaSOATRequest request);
+        Task<IEnumerable<string>> Apeseg_Validar(string tipo, dynamic request);
     }
 }

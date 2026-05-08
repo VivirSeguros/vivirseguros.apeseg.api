@@ -34,7 +34,7 @@ namespace VidaCamara.Masivos.Services.Services.Apeseg
 
         public async Task<RegistrarResponse> Apeseg_Registrar(RegistroSOATRequest request)
         {
-            _apesegRepository.Apeseg_Validar("R", request);
+       
 
             RegistrarParam param = new RegistrarParam
             {
@@ -50,7 +50,7 @@ namespace VidaCamara.Masivos.Services.Services.Apeseg
                 CodigoUsoVehiculo = request.CodigoUsoVehiculo,
                 CodigoClaseVehiculo = request.CodigoClaseVehiculo,
                 PaisPlaca = request.PaisPlaca,
-                FechaIngreso = request.FechaRegistro,
+                FechaIngreso = request.FechaIngreso,
                 CodigoUbigeo = request.CodigoUbigeo,
                 NumeroSerieMotor = request.NumeroSerieMotor,
                 FechaControlPolicial = request.FechaControlPolicial,
@@ -177,7 +177,7 @@ namespace VidaCamara.Masivos.Services.Services.Apeseg
                 CodigoUsoVehiculo = request.CodigoUsoVehiculo,
                 CodigoClaseVehiculo = request.CodigoClaseVehiculo,
                 PaisPlaca = request.PaisPlaca,
-                FechaActualizacion = DateTime.Now.ToString("dd/MM/yyyy"),
+                FechaActualizacion = request.FechaActualizacion,
                 CodigoUbigeo = request.CodigoUbigeo,
                 NumeroSerieMotor = request.NumeroSerieMotor,
                 NumeroSerieChasis = request.NumeroSerieChasis,
@@ -293,7 +293,7 @@ namespace VidaCamara.Masivos.Services.Services.Apeseg
                 polizaCertificado = request.PolizaCertificado,
                 digitoVerificador = request.DigitoVerificador,
                 codigoTipoAnulacion = request.CodigoTipoAnulacion,
-                fechaAnulacion = DateTime.Now.ToString("dd/MM/yyyy"),
+                fechaAnulacion = request.FechaAnulacion,
                 usuarioModificacion = request.UsuarioRegistro
             };
 
@@ -430,7 +430,18 @@ namespace VidaCamara.Masivos.Services.Services.Apeseg
             return respuestaServicio;
         }
 
-
+        public async Task<IEnumerable<string>> Apeseg_Validar(string tipo, dynamic request)
+        {
+            try
+            {
+                var errores = await _apesegRepository.Apeseg_Validar(tipo, request);
+                return errores;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("Error al procesar la validación técnica de API", ex);
+            }
+        }
 
         #region PRIVATE METHODS
         private async Task<string> ObtenerToken()

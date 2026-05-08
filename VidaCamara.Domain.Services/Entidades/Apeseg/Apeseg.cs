@@ -33,7 +33,7 @@ namespace VidaCamara.Domain.Services.Entidades.Apeseg
         public string CodigoUsoVehiculo { get; set; }
         public string CodigoClaseVehiculo { get; set; }
         public string PaisPlaca { get; set; }
-        public string FechaRegistro { get; set; }
+        public string FechaIngreso { get; set; }
         public string CodigoUbigeo { get; set; }
         public string NumeroSerieMotor { get; set; }
         public string FechaControlPolicial { get; set; }
@@ -43,12 +43,14 @@ namespace VidaCamara.Domain.Services.Entidades.Apeseg
         public string Marca { get; set; }
         public string NumeroAsientos { get; set; }
         public string ModeloVehiculo { get; set; }
-        public string UsuarioRegistro { get; set; }
 
         public string Proveedor { get; set; }
         public string Canal { get; set; }
         public string PuntoVenta { get; set; }
         public string IpCliente { get; set; }
+
+        //public string FechaRegistro { get; set; }
+        public string UsuarioRegistro { get; set; }
     }
 
     // Modificar hereda de Registro porque usa los mismos campos + el Dígito
@@ -66,7 +68,7 @@ namespace VidaCamara.Domain.Services.Entidades.Apeseg
         public string CodigoUsoVehiculo { get; set; }
         public string CodigoClaseVehiculo { get; set; }
         public string PaisPlaca { get; set; }
-        public string FechaIngreso { get; set; }
+        public string FechaActualizacion { get; set; }
         public string CodigoUbigeo { get; set; }
         public string NumeroSerieMotor { get; set; }
         public string NumeroSerieChasis { get; set; }
@@ -78,13 +80,15 @@ namespace VidaCamara.Domain.Services.Entidades.Apeseg
         public string NumeroAsientos { get; set; }
         public string ModeloVehiculo { get; set; }
         public string DigitoVerificador { get; set; }
-        public string UsuarioRegistro { get; set; }
-
 
         public string Proveedor { get; set; }
         public string Canal { get; set; }
         public string PuntoVenta { get; set; }
         public string IpCliente { get; set; }
+
+        //public string FechaRegistro { get; set; }
+        public string UsuarioRegistro { get; set; }
+
     }
 
     public class AnulacionSOATRequest
@@ -93,13 +97,13 @@ namespace VidaCamara.Domain.Services.Entidades.Apeseg
         public string PolizaCertificado { get; set; }
         public string DigitoVerificador { get; set; }
         public string CodigoTipoAnulacion { get; set; }
-        public string UsuarioRegistro { get; set; }
-
-
+        public string FechaAnulacion { get; set; }
         public string Proveedor { get; set; }
         public string Canal { get; set; }
         public string PuntoVenta { get; set; }
         public string IpCliente { get; set; }
+        public string UsuarioRegistro { get; set; }
+        //public string FechaRegistro { get; set; }
     }
     public class ConsultaSOATRequest
     {

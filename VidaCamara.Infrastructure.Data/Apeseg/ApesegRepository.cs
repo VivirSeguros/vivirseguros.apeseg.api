@@ -90,16 +90,18 @@ namespace VidaCamara.Infrastructure.Data.Apeseg
         }
 
 
-        public void Apeseg_Validar(string tipo, dynamic req)
+        public Task<IEnumerable<string>> Apeseg_Validar(string tipo, dynamic req)
         {
             List<SqlParameter> p = new List<SqlParameter>();
+            IEnumerable<string> result = null;
+            List<string> lErrores = new List<string>();
 
-            // Función local para obtener el valor o DBNull si la propiedad no existe
+            Log.save(this, "EMPIEZA METODO Apeseg_Validar");
+
             object GetVal(string propName)
             {
                 try
                 {
-                    // Intentamos obtener el valor de la propiedad dinámicamente
                     var value = req.GetType().GetProperty(propName)?.GetValue(req, null);
                     return value ?? DBNull.Value;
                 }
@@ -109,20 +111,19 @@ namespace VidaCamara.Infrastructure.Data.Apeseg
                 }
             }
 
-            // Parámetros enviados SIEMPRE al SP
             p.Add(new SqlParameter("@p_Tipo", tipo));
             p.Add(new SqlParameter("@p_CodigoAseguradora", GetVal("CodigoAseguradora")));
             p.Add(new SqlParameter("@p_PolizaCertificado", GetVal("PolizaCertificado")));
             p.Add(new SqlParameter("@p_DigitoVerificador", GetVal("DigitoVerificador")));
 
-            // Fechas
             p.Add(new SqlParameter("@p_FechaInicioVigencia", GetVal("FechaInicioVigencia")));
             p.Add(new SqlParameter("@p_FechaFinVigencia", GetVal("FechaFinVigencia")));
-            p.Add(new SqlParameter("@p_FechaRegistro", GetVal("FechaRegistro")));
-            p.Add(new SqlParameter("@p_FechaIngreso", GetVal("FechaIngreso")));
             p.Add(new SqlParameter("@p_FechaControlPolicial", GetVal("FechaControlPolicial")));
 
-            // Persona / Contratante
+            p.Add(new SqlParameter("@p_FechaIngreso", GetVal("FechaIngreso")));
+            p.Add(new SqlParameter("@p_FechaActualizacion", GetVal("FechaActualizacion"))); 
+            p.Add(new SqlParameter("@p_FechaAnulacion", GetVal("FechaAnulacion")));
+
             p.Add(new SqlParameter("@p_CodigoTipoPersona", GetVal("CodigoTipoPersona")));
             p.Add(new SqlParameter("@p_NombreContratante", GetVal("NombreContratante")));
             p.Add(new SqlParameter("@p_CodigoTipoDocumento", GetVal("CodigoTipoDocumento")));
@@ -130,7 +131,6 @@ namespace VidaCamara.Infrastructure.Data.Apeseg
             p.Add(new SqlParameter("@p_TelefonoContacto", GetVal("TelefonoContacto")));
             p.Add(new SqlParameter("@p_CorreoContacto", GetVal("CorreoContacto")));
 
-            // Vehículo
             p.Add(new SqlParameter("@p_PlacaVehiculo", GetVal("PlacaVehiculo")));
             p.Add(new SqlParameter("@p_CodigoUsoVehiculo", GetVal("CodigoUsoVehiculo")));
             p.Add(new SqlParameter("@p_CodigoClaseVehiculo", GetVal("CodigoClaseVehiculo")));
@@ -142,27 +142,35 @@ namespace VidaCamara.Infrastructure.Data.Apeseg
             p.Add(new SqlParameter("@p_NumeroSerieChasis", GetVal("NumeroSerieChasis")));
             p.Add(new SqlParameter("@p_CodigoUbigeo", GetVal("CodigoUbigeo")));
 
-            // Específicos
             p.Add(new SqlParameter("@p_TipoCertificado", GetVal("TipoCertificado")));
             p.Add(new SqlParameter("@p_CodigoTipoAnulacion", GetVal("CodigoTipoAnulacion")));
 
-            // Auditoría
             p.Add(new SqlParameter("@p_UsuarioRegistro", GetVal("UsuarioRegistro")));
             p.Add(new SqlParameter("@p_Proveedor", GetVal("Proveedor")));
             p.Add(new SqlParameter("@p_Canal", GetVal("Canal")));
             p.Add(new SqlParameter("@p_PuntoVenta", GetVal("PuntoVenta")));
             p.Add(new SqlParameter("@p_IpCliente", GetVal("IpCliente")));
 
+
             try
             {
-                // Se ejecuta sin condiciones en C#. El SP decide qué validar según @p_Tipo.
-                _connectionBase.ExecuteByStoredProcedure("sp_Apeseg_VAL", p, ConnectionBase.enuTypeDataBase.sqlCon);
+                using (SqlDataReader dr = (SqlDataReader)_connectionBase.ExecuteByStoredProcedure("[sp_Apeseg_VAL]", p, ConnectionBase.enuTypeDataBase.sqlCon))
+                {
+                    while (dr.Read())
+                    {
+                        lErrores.Add(dr.GetString(dr.GetOrdinal("MensajeCompleto")));
+                    }
+                    result = lErrores as IEnumerable<string>;
+                }
             }
             catch (Exception ex)
             {
-                Log.save(this, "ERROR VALIDACIÓN GLOBAL DB: " + ex.Message);
-                throw;
+                int line = (new StackTrace(ex, true)).GetFrame(0)?.GetFileLineNumber() ?? 0;
+                Log.save(this, "ERROR EN LINEA: " + line + " / " + ex.Message);
             }
+
+            Log.save(this, "TERMINA METODO Apeseg_Validar");
+            return Task.FromResult<IEnumerable<string>>(result);
         }
     }
 }

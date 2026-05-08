@@ -39,13 +39,18 @@ namespace VidaCamara.Masivos.Services.Controllers
             {
                 Log.saveFirstLine();
                 Log.save(this, "EMPIEZA GRABACIÓN A APESEG REGISTRAR PLACA= " + _param.PlacaVehiculo);
-
                 _param.IpCliente = GetClientIp();
 
-                var datos = await _apesegService.Apeseg_Registrar(_param);
+                Log.save(this, "EMPIEZA VALIDACION API REGISTRAR PLACA= " + _param.PlacaVehiculo);
+                var errores = await _apesegService.Apeseg_Validar("R", _param);
+                if (errores.Any())
+                    return BadRequest(new { mensaje = "ERROR API: Error en grabación placa " + _param.PlacaVehiculo, erroresmensaje = errores });
+                Log.save(this, "TERMINA VALIDACION API REGISTRAR PLACA= " + _param.PlacaVehiculo);
 
+
+                var datos = await _apesegService.Apeseg_Registrar(_param);
                 if (!datos.OperacionExitosa)
-                    return BadRequest(new { mensaje = "ERROR: Error en grabación placa " + _param.PlacaVehiculo, errores = datos.CodigoError, erroresmensaje = datos.MensajeError });
+                    return BadRequest(new { mensaje = "ERROR APESEG: Error en grabación placa " + _param.PlacaVehiculo, errores = datos.CodigoError, erroresmensaje = datos.MensajeError });
 
                 Log.save(this, "TERMINA GRABACIÓN A APESEG REGISTRAR PLACA= " + _param.PlacaVehiculo);
 
@@ -54,7 +59,7 @@ namespace VidaCamara.Masivos.Services.Controllers
             catch (Exception ex)
             {
                 Log.save(this, "ERROR: " + ex.Message);
-                return BadRequest(new { mensaje = ex.Message });
+                return BadRequest(new { mensaje = "ERROR API: Error en grabación placa " + _param.PlacaVehiculo, erroresmensaje = ex.Message });
             }
         }
 
@@ -69,13 +74,18 @@ namespace VidaCamara.Masivos.Services.Controllers
             {
                 Log.saveFirstLine();
                 Log.save(this, "EMPIEZA MODIFICACIÓN A APESEG PLACA= " + _param.PlacaVehiculo);
-
                 _param.IpCliente = GetClientIp();
+
+                Log.save(this, "EMPIEZA VALIDACION API ACTUALIZAR PLACA= " + _param.PlacaVehiculo);
+                var errores = await _apesegService.Apeseg_Validar("U", _param);
+                if (errores.Any())
+                    return BadRequest(new { mensaje = "ERROR API: Error en actualización placa " + _param.PlacaVehiculo, erroresmensaje = errores });
+                Log.save(this, "TERMINA VALIDACION API ACTUALIZAR PLACA= " + _param.PlacaVehiculo);
 
                 var datos = await _apesegService.Apeseg_Actualizar(_param);
 
                 if (!datos.OperacionExitosa)
-                    return BadRequest(new { mensaje = "ERROR: Error en modificación placa " + _param.PlacaVehiculo, errores = datos.CodigoError, erroresmensaje = datos.MensajeError });
+                    return BadRequest(new { mensaje = "ERROR APESEG: Error en actualización placa " + _param.PlacaVehiculo, errores = datos.CodigoError, erroresmensaje = datos.MensajeError });
 
                 Log.save(this, "TERMINA MODIFICACIÓN A APESEG PLACA= " + _param.PlacaVehiculo);
 
@@ -84,7 +94,7 @@ namespace VidaCamara.Masivos.Services.Controllers
             catch (Exception ex)
             {
                 Log.save(this, "ERROR: " + ex.Message);
-                return BadRequest(new { mensaje = ex.Message });
+                return BadRequest(new { mensaje = "ERROR API: Error en actualización placa " + _param.PlacaVehiculo, erroresmensaje = ex.Message });
             }
         }
 
@@ -99,14 +109,18 @@ namespace VidaCamara.Masivos.Services.Controllers
             {
                 Log.saveFirstLine();
                 Log.save(this, "EMPIEZA ANULACIÓN A APESEG CERTIFICADO= " + _param.PolizaCertificado);
-
                 _param.IpCliente = GetClientIp();
 
-                var datos = await _apesegService.Apeseg_Anular(_param);
+                Log.save(this, "EMPIEZA VALIDACION API REGISTRAR PLACA= " + _param.PolizaCertificado);
+                var errores = await _apesegService.Apeseg_Validar("D", _param);
+                if (errores.Any())
+                    return BadRequest(new { mensaje = "ERROR API: Error en anulación certificado " + _param.PolizaCertificado, erroresmensaje = errores });
+                Log.save(this, "TERMINA VALIDACION API ANULAR CERTIFICADO= " + _param.PolizaCertificado);
 
+                var datos = await _apesegService.Apeseg_Anular(_param);
                 if (!datos.OperacionExitosa)
-                    return BadRequest(new { mensaje = "ERROR: Error en anulación certificado " + _param.PolizaCertificado, errores = datos.CodigoError, erroresmensaje = datos.MensajeError });
-                
+                    return BadRequest(new { mensaje = "ERROR APESEG: Error en anulación certificado " + _param.PolizaCertificado, errores = datos.CodigoError, erroresmensaje = datos.MensajeError });
+
                 Log.save(this, "TERMINA ANULACIÓN A APESEG CERTIFICADO= " + _param.PolizaCertificado);
 
                 return Ok(new { mensaje = "OK", datos });
@@ -114,7 +128,7 @@ namespace VidaCamara.Masivos.Services.Controllers
             catch (Exception ex)
             {
                 Log.save(this, "ERROR: " + ex.Message);
-                return BadRequest(new { mensaje = ex.Message });
+                return BadRequest(new { mensaje = "ERROR API: Error en modificacion placa " + _param.PolizaCertificado, erroresmensaje = ex.Message });
             }
         }
 
