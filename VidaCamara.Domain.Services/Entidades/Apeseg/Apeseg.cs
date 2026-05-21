@@ -109,6 +109,11 @@ namespace VidaCamara.Domain.Services.Entidades.Apeseg
     {
         public string placa { get; set; }
         public string subscriptionKey { get; set; } = null;
+        public string Proveedor { get; set; }
+        public string Canal { get; set; }
+        public string PuntoVenta { get; set; }
+        public string IpCliente { get; set; }
+        public string UsuarioRegistro { get; set; }
     }
     #endregion
 

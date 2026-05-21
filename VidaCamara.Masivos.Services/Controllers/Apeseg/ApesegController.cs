@@ -133,24 +133,20 @@ namespace VidaCamara.Masivos.Services.Controllers
         }
 
         [Authorize]
-        [HttpGet]
-        [Route("Consultar/{placa}/{subscriptionKey?}")]
-        public async Task<IActionResult> Consultar(string placa, string subscriptionKey = null)
+        [HttpPost]
+        [Route("Consultar")]
+        public async Task<IActionResult> Consultar([FromBody] ConsultaSOATRequest _param)
         {
             try
             {
                 Log.saveFirstLine();
-                Log.save(this, "EMPIEZA Consultar A APESEG / _placa= " + placa);
+                Log.save(this, "EMPIEZA Consultar A APESEG / _placa= " + _param.placa);
 
-                ConsultaSOATRequest request = new ConsultaSOATRequest
-                {
-                    placa = placa,
-                    subscriptionKey = subscriptionKey
-                };
+                _param.IpCliente = GetClientIp();
 
-                var datos = await _apesegService.Consultar(request);
+                var datos = await _apesegService.Consultar(_param);
 
-                Log.save(this, "TERMINA Consultar A APESEG / _placa= " + placa);
+                Log.save(this, "TERMINA Consultar A APESEG / _placa= " + _param.placa);
 
                 if (datos is null) return BadRequest(new { mensaje = "ERROR: No se obtuvo respuesta de APESEG" });
 

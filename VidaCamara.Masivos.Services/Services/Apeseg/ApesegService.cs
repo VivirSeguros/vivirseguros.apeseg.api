@@ -390,6 +390,8 @@ namespace VidaCamara.Masivos.Services.Services.Apeseg
 
         public async Task<ConsultarResponse> Consultar(ConsultaSOATRequest request)
         {
+            string jsonEnvia = string.Empty;
+
             ConsultarParam param = new ConsultarParam
             {
                 placa = request.placa,
@@ -405,6 +407,8 @@ namespace VidaCamara.Masivos.Services.Services.Apeseg
 
                 string uriBase = await _helperService.GetValorTablaConfig("APESEG.UriConsultarSOAT") + param.placa;
 
+                jsonEnvia = JsonConvert.SerializeObject(param);
+
                 using (var client = new HttpClient())
                 {
                     client.Timeout = TimeSpan.FromSeconds(int.TryParse(_helperService.GetValorTablaConfig("APESEG.TiempoRespuesta")?.ToString(), out int s) ? s : 30);
@@ -414,17 +418,55 @@ namespace VidaCamara.Masivos.Services.Services.Apeseg
                     Log.save(this, "EMPIEZA INVOCACIÓN SERVICIO CONSULTA APESEG / placa=" + param.placa);
 
                     HttpResponseMessage response = await client.GetAsync(uriBase);
-                    string respuestaJson = await response.Content.ReadAsStringAsync();
-
-                    respuestaServicio = JsonConvert.DeserializeObject<ConsultarResponse>(respuestaJson);
+                    var jsonRecibe = await response.Content.ReadAsStringAsync();
+                    respuestaServicio = JsonConvert.DeserializeObject<ConsultarResponse>(jsonRecibe);
 
                     Log.save(this, "TERMINA INVOCACIÓN SERVICIO CONSULTA APESEG / placa=" + param.placa);
+                    string status = respuestaServicio.OperacionExitosa ? "OK" : string.Join(",", respuestaServicio.CodigoError);
+
+                    ApesegLog apesegLog = new ApesegLog
+                    {
+                        Tipo = "C",
+                        Nro = null,
+                        Digito = -1,
+                        Err = status,
+                        Envia = jsonEnvia,
+                        Recibe = jsonRecibe,
+                        User = request.UsuarioRegistro,
+                        Proveedor = request.Proveedor,
+                        Canal = request.Canal,
+                        PuntoVenta = request.PuntoVenta,
+                        IpCliente = request.IpCliente,
+                    };
+
+                    Log.save(this, "EMPIEZA PROCESO DE GRABARLOG APESEG PLACA= " + request.placa);
+                    _apesegRepository.Apeseg_Insertar(apesegLog);
+                    Log.save(this, "TERMINA PROCESO DE GRABARLOG APESEG PLACA= " + request.placa);
+
                 }
             }
             catch (Exception ex)
             {
                 int line = (new StackTrace(ex, true)).GetFrame(0)?.GetFileLineNumber() ?? 0;
                 Log.save(this, "ERROR EN LINEA: " + line + " / " + ex.Message);
+
+                ApesegLog apesegLog = new ApesegLog
+                {
+                    Tipo = "C",
+                    Nro = null,
+                    Digito = -1,
+                    Err = "Error Consulta: " + ex.Message,
+                    Envia = jsonEnvia,
+                    Recibe = "",
+                    User = request.UsuarioRegistro,
+                    Proveedor = request.Proveedor,
+                    Canal = request.Canal,
+                    PuntoVenta = request.PuntoVenta,
+                    IpCliente = request.IpCliente,
+
+                };
+                _apesegRepository.Apeseg_Insertar(apesegLog);
+                throw;
             }
 
             return respuestaServicio;

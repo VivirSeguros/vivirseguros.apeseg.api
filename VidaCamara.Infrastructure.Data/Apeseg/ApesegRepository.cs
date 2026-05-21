@@ -88,8 +88,6 @@ namespace VidaCamara.Infrastructure.Data.Apeseg
             Log.save(this, "TERMINA METODO ApesegErrorCatalogo_Listar");
             return Task.FromResult<IEnumerable<ApesegErrorCatalogo>>(result);
         }
-
-
         public Task<IEnumerable<string>> Apeseg_Validar(string tipo, dynamic req)
         {
             List<SqlParameter> p = new List<SqlParameter>();
