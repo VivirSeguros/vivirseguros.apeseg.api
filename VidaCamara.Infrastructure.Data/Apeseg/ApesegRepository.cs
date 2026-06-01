@@ -31,7 +31,7 @@ namespace VidaCamara.Infrastructure.Data.Apeseg
             _helperRepository = helperRepository;
         }
 
-        public void Apeseg_Insertar(ApesegLog param)
+        public Task Apeseg_Insertar(ApesegLog param)
         {
             List<SqlParameter> parameters = new List<SqlParameter> {
                 new SqlParameter("@p_TipoEnvio",param.Tipo),
@@ -44,7 +44,9 @@ namespace VidaCamara.Infrastructure.Data.Apeseg
                 new SqlParameter("@p_Proveedor", param.Proveedor ?? ""),
                 new SqlParameter("@p_Canal", param.Canal ?? ""),
                 new SqlParameter("@p_PuntoVenta", param.PuntoVenta ?? ""),
-                new SqlParameter("@p_IpCliente", param.IpCliente ?? "")
+                new SqlParameter("@p_IpCliente", param.IpCliente ?? ""),
+                new SqlParameter("@p_TramaEnvio", param.TramaEnvio ?? ""),
+                new SqlParameter("@p_TramaRespuesta", param.TramaRespuesta ?? "")
             };
             try
             {
@@ -54,7 +56,9 @@ namespace VidaCamara.Infrastructure.Data.Apeseg
             {
                 int line = (new StackTrace(ex, true)).GetFrame(0)?.GetFileLineNumber() ?? 0;
                 Log.save(this, "ERROR GRABAR LOG EN LINEA: " + line + " / " + ex.Message);
+                throw;
             }
+            return Task.CompletedTask;
         }
         public Task<IEnumerable<ApesegErrorCatalogo>> ApesegErrorCatalogo_Listar()
         {
