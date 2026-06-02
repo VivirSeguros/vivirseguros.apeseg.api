@@ -407,8 +407,7 @@ namespace VidaCamara.Masivos.Services.Services.Apeseg
             #region 1. Mapeo Inicial Parámetros de Entrada
             ConsultarParam param = new ConsultarParam
             {
-                placa = request?.placa,
-                subscriptionKey = request?.subscriptionKey
+                placa = request?.placa
             };
 
             string jsonEnvia = string.Empty;
@@ -421,7 +420,7 @@ namespace VidaCamara.Masivos.Services.Services.Apeseg
                 {
                     #region 2. Invocación Externa Servicio APESEG (HTTP GET)
                     Log.save(this, "EMPIEZA OBTENER CONFIGURACIÓN CONSULTA APESEG PLACA= " + param.placa);
-                    var subKey = param.subscriptionKey ?? await _helperService.GetValorTablaConfig("APESEG.SubscriptionKey");
+                    var subKey = await _helperService.GetValorTablaConfig("APESEG.SubscriptionKey");
                     string uriBase = await _helperService.GetValorTablaConfig("APESEG.UriConsultarSOAT") + param.placa;
                     string timeoutStr = await _helperService.GetValorTablaConfig("APESEG.TiempoRespuesta");
                     jsonEnvia = JsonConvert.SerializeObject(param);

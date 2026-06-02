@@ -108,7 +108,7 @@ namespace VidaCamara.Domain.Services.Entidades.Apeseg
     public class ConsultaSOATRequest
     {
         public string placa { get; set; }
-        public string subscriptionKey { get; set; } = null;
+        //public string subscriptionKey { get; set; } = null;
         public string Proveedor { get; set; }
         public string Canal { get; set; }
         public string PuntoVenta { get; set; }
@@ -191,7 +191,6 @@ namespace VidaCamara.Domain.Services.Entidades.Apeseg
     public class ConsultarParam
     {
         public string placa { get; set; }
-        public string subscriptionKey { get; set; } = null;
     }
     #endregion
 
