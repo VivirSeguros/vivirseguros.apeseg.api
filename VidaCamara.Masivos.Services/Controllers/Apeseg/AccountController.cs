@@ -57,7 +57,7 @@ namespace VidaCamara.Masivos.Services.Controllers
                 {
                     success = false,
                     message = "ERROR: Mala petición",
-                    token = (string)null,
+                    datos = (object)null,
                     errors = "El modelo de datos no es válido."
                 });
             }
@@ -76,25 +76,32 @@ namespace VidaCamara.Masivos.Services.Controllers
                     {
                         success = false,
                         message = "username o password incorrecto",
-                        token = (string)null,
+                        datos = (object)null,
                         errors = "Las credenciales proporcionadas son incorrectas."
                     });
                 }
 
-                // Generar el token (ahora devuelve string directamente)
+                // Generar el token en formato string plano
                 string tokenString = BuildToken(datos.login, datos.idPerfil.ToString());
-                datos.jwt = tokenString;
 
-                datos.menu = await _loginService.GetMenu(datos.idPerfil);
-
+                // Guardamos en log la culminación del proceso antes de responder
                 Log.save(this, "TERMINA WEBAPI GetLogin");
 
-                // 3. Login Exitoso
+                // 3. Login Exitoso con la nueva estructura requerida
                 return Ok(new
                 {
                     success = true,
                     message = "ok",
-                    token = tokenString,
+                    datos = new
+                    {
+                        jwt = new
+                        {
+                            value = new
+                            {
+                                token = tokenString
+                            }
+                        }
+                    },
                     errors = (string)null
                 });
             }
@@ -108,7 +115,7 @@ namespace VidaCamara.Masivos.Services.Controllers
                 {
                     success = false,
                     message = "ocurrio error",
-                    token = (string)null,
+                    datos = (object)null,
                     errors = ex.Message
                 });
             }
