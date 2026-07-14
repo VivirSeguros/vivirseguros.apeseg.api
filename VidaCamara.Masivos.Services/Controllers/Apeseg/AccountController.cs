@@ -20,7 +20,6 @@ using VidaCamara.CrossCuting.Utilities;
 using System.Diagnostics;
 using Microsoft.AspNetCore.Http;
 
-
 namespace VidaCamara.Masivos.Services.Controllers
 {
     [Route("api/[controller]")]
@@ -31,7 +30,6 @@ namespace VidaCamara.Masivos.Services.Controllers
         private ILoggerManager _logger;
         private IMapper _mapper;
         private readonly IHttpContextAccessor _httpContextAccessor;
-
         private readonly AppSettings _appSettings;
 
         public AccountController(ILoggerManager logger,
@@ -46,41 +44,86 @@ namespace VidaCamara.Masivos.Services.Controllers
             _appSettings = appSettings.Value;
             _httpContextAccessor = httpContextAccessor;
         }
-        
+
         [AllowAnonymous]
         [HttpPost]
         [Route("GetLogin")]
         public async Task<IActionResult> GetLogin([FromBody] LoginParam _param)
         {
-            if (!ModelState.IsValid) return BadRequest(new { mensaje = "ERROR: Mal peticion"});
+            // 1. Error de validación en el modelo enviado
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(new
+                {
+                    success = false,
+                    message = "ERROR: Mala petición",
+                    token = (string)null,
+                    errors = "El modelo de datos no es válido."
+                });
+            }
 
-            try  {
+            try
+            {
                 Log.saveFirstLine();
                 Log.save(this, "EMPIEZA WEBAPI GetLogin");
+
                 Login datos = await _loginService.GetLogin(_param);
-                if ( datos is null) return Ok(new { mensaje = "Usuario no existe!!" });
-                datos.jwt = BuildToken(datos.login, datos.idPerfil.ToString());
+
+                // 2. El usuario no existe
+                if (datos is null)
+                {
+                    return Ok(new
+                    {
+                        success = false,
+                        message = "username o password incorrecto",
+                        token = (string)null,
+                        errors = "Las credenciales proporcionadas son incorrectas."
+                    });
+                }
+
+                // Generar el token (ahora devuelve string directamente)
+                string tokenString = BuildToken(datos.login, datos.idPerfil.ToString());
+                datos.jwt = tokenString;
+
                 datos.menu = await _loginService.GetMenu(datos.idPerfil);
+
                 Log.save(this, "TERMINA WEBAPI GetLogin");
-                return Ok(new { mensaje = "OK", datos });   
+
+                // 3. Login Exitoso
+                return Ok(new
+                {
+                    success = true,
+                    message = "ok",
+                    token = tokenString,
+                    errors = (string)null
+                });
             }
-            catch (Exception ex)  {
+            catch (Exception ex)
+            {
                 int line = (new StackTrace(ex, true)).GetFrame(3).GetFileLineNumber();
                 Log.save(this, "ERROR EN LINEA: " + line + " / " + ex.Message);
-                return BadRequest(new { mensaje = ex.Message });
+
+                // 4. Captura de errores inesperados
+                return BadRequest(new
+                {
+                    success = false,
+                    message = "ocurrio error",
+                    token = (string)null,
+                    errors = ex.Message
+                });
             }
         }
 
         [ApiExplorerSettings(IgnoreApi = true)]
-        private IActionResult BuildToken( string user, string perfil )  
+        private string BuildToken(string user, string perfil)
         {
-            try {
+            try
+            {
                 var claims = new[]  {
                     new Claim(ClaimTypes.Name, user),
                     new Claim(JwtRegisteredClaimNames.UniqueName, user),
                     new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
                     new Claim(ClaimTypes.Role, perfil)
-                    //new Claim(ClaimTypes.Role, user.oRol.RolDescripcionRol)
                 };
 
                 var key = Encoding.ASCII.GetBytes(_appSettings.Secret);
@@ -89,25 +132,24 @@ namespace VidaCamara.Masivos.Services.Controllers
 
                 int hora = _appSettings.HoraToken;
                 var expiration = DateTime.Now.AddHours(hora);
+
                 var token = new JwtSecurityToken(
-                        issuer: _appSettings.Site,
-                        audience: _appSettings.Site,
-                        expires: expiration,
-                        signingCredentials: signingCredentials,
-                        claims: claims
-                    );
-                return Ok(new {
-                    token = new JwtSecurityTokenHandler().WriteToken(token),
-                    expiration
-                }); 
+                    issuer: _appSettings.Site,
+                    audience: _appSettings.Site,
+                    expires: expiration,
+                    signingCredentials: signingCredentials,
+                    claims: claims
+                );
+
+                // Devolvemos únicamente la cadena de texto del JWT compilado
+                return new JwtSecurityTokenHandler().WriteToken(token);
             }
-            catch (Exception ex)   {
+            catch (Exception ex)
+            {
                 int line = (new StackTrace(ex, true)).GetFrame(3).GetFileLineNumber();
-                Log.save(this, "ERROR EN LINEA: " + line + " / " + ex.Message);
-                throw ex;
+                Log.save(this, "ERROR EN LINEA (BuildToken): " + line + " / " + ex.Message);
+                throw;
             }
-
         }
-
     }
 }
