@@ -77,7 +77,7 @@ namespace VidaCamara.Infrastructure.Data.LoginModule
             try
             {
                 using (SqlDataReader dr =
-            (SqlDataReader)_connectionBase.ExecuteByStoredProcedure("sp_Login_SEL", parameters, ConnectionBase.enuTypeDataBase.sqlCon))
+            (SqlDataReader)_connectionBase.ExecuteByStoredProcedure("soat.sp_Login_SEL", parameters, ConnectionBase.enuTypeDataBase.sqlCon))
                 {
                     while (dr.Read())
                     {
